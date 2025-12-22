@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Tracker</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --gray: #6b7280;
+            --light: #f3f4f6;
+            --dark: #1f2937;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        .tabs {
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button.danger { background: var(--danger); }
+        button.secondary {
+            background: #6b7280;
+        }
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .amount { font-weight: bold; }
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+        .progress-bar {
+            height: 1.5rem;
+            background: #e5e7eb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.4s ease;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .summary-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        @media (max-width: 640px) {
+            .container { padding: 0.5rem; }
+            .card { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Personal Finance Tracker</h1>
+    </header>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+            <button class="tab-btn" data-tab="income">Income</button>
+            <button class="tab-btn" data-tab="recurring">Recurring</button>
+            <button class="tab-btn" data-tab="onetime">One-Time</button>
+            <button class="tab-btn" data-tab="debts">Debts</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="card">
+                <h2>Monthly Overview</h2>
+                <div class="summary-grid" id="summary-grid">
+                    <!-- Filled by JS -->
+                </div>
+
+                <h3 style="margin-top:2rem;">Spending Progress</h3>
+                <div class="progress-bar"><div class="progress-fill" id="spending-progress"></div></div>
+                <p id="spending-text"></p>
+
+                <h3>Expense Breakdown</h3>
+                <div id="breakdown-list"></div>
+            </div>
+        </div>
+
+        <!-- Income -->
+        <div id="income" class="tab-content">
+            <div class="card">
+                <h2>Set Monthly Income</h2>
+                <div class="form-group">
+                    <label for="monthly-income">Monthly Income ($)</label>
+                    <input type="number" id="monthly-income" placeholder="e.g., 5000" step="0.01">
+                </div>
+                <button id="save-income">Save Income</button>
+                <p style="margin-top:1rem;">Current: <strong id="current-income">$0.00</strong></p>
+            </div>
+        </div>
+
+        <!-- Recurring Expenses -->
+        <div id="recurring" class="tab-content">
+            <div class="card">
+                <h2>Recurring Expenses</h2>
+                <div class="form-group">
+                    <label for="rec-name">Name</label>
+                    <input type="text" id="rec-name" placeholder="e.g., Rent">
+                </div>
+                <div class="form-group">
+                    <label for="rec-amount">Monthly Amount ($)</label>
+                    <input type="number" id="rec-amount" step="0.01" placeholder="e.g., 1200">
+                </div>
+                <button id="add-recurring">Add Recurring Expense</button>
+
+                <h3 style="margin-top:2rem;">Current Recurring Expenses</h3>
+                <div id="recurring-list"></div>
+            </div>
+        </div>
+
+        <!-- One-Time Expenses -->
+        <div id="onetime" class="tab-content">
+            <div class="card">
+                <h2>Add One-Time Expense</h2>
+                <div class="form-group">
+                    <label for="one-name">Description</label>
+                    <input type="text" id="one-name" placeholder="e.g., Groceries">
+                </div>
+                <div class="form-group">
+                    <label for="one-amount">Amount ($)</label>
+                    <input type="number" id="one-amount" step="0.01" placeholder="e.g., 150">
+                </div>
+                <button id="add-onetime">Add Expense</button>
+
+                <h3 style="margin-top:2rem;">One-Time Expenses This Month</h3>
+                <div id="onetime-list"></div>
+                <button id="reset-onetime" class="danger" style="margin-top:1rem;">Reset One-Time Expenses (New Month)</button>
+            </div>
+        </div>
+
+        <!-- Debts -->
+        <div id="debts" class="tab-content">
+            <div class="card">
+                <h2>Add New Debt</h2>
+                <div class="form-group">
+                    <label for="debt-name">Debt Name</label>
+                    <input type="text" id="debt-name" placeholder="e.g., Credit Card">
+                </div>
+                <div class="form-group">
+                    <label for="debt-total">Total Amount Owed ($)</label>
+                    <input type="number" id="debt-total" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="debt-min">Minimum Monthly Payment ($)</label>
+                    <input type="number" id="debt-min" step="0.01">
+                </div>
+                <button id="add-debt">Add Debt</button>
+
+                <h3 style="margin-top:2rem;">Current Debts</h3>
+                <div id="debts-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data structure
+        const data = {
+            income: 0,
+            recurring: [], // {id, name, amount}
+            onetime: [],   // {id, name, amount}
+            debts: []      // {id, name, total, minPayment, paidThisMonth: {min:0, extra:0}, remaining}
+        };
+
+        let nextId = {
+            recurring: 0,
+            onetime: 0,
+            debt: 0
+        };
+
+        // Load from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('financeTracker');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                Object.assign(data, parsed.data);
+                nextId = parsed.nextId || nextId;
+            }
+            renderAll();
+        }
+
+        // Save to localStorage
+        function saveData() {
+            localStorage.setItem('financeTracker', JSON.stringify({data, nextId}));
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.tab-btn.active').classList.remove('active');
+                document.querySelector('.tab-content.active').classList.remove('active');
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Income
+        document.getElementById('save-income').addEventListener('click', () => {
+            const val = parseFloat(document.getElementById('monthly-income').value);
+            if (!isNaN(val) && val >= 0) {
+                data.income = val;
+                saveData();
+                renderAll();
+            }
+        });
+
+        // Recurring
+        document.getElementById('add-recurring').addEventListener('click', () => {
+            const name = document.getElementById('rec-name').value.trim();
+            const amount = parseFloat(document.getElementById('rec-amount').value);
+            if (name && !isNaN(amount) && amount > 0) {
+                data.recurring.push({id: nextId.recurring++, name, amount});
+                document.getElementById('rec-name').value = '';
+                document.getElementById('rec-amount').value = '';
+                saveData();
+                renderRecurring();
+                renderDashboard();
+            }
+        });
+
+        // One-time
+        document.getElementById('add-onetime').addEventListener('click', () => {
+            const name = document.getElementById('one-name').value.trim();
+            const amount = parseFloat(document.getElementById('one-amount').value);
+            if (name && !isNaN(amount) && amount > 0) {
+                data.onetime.push({id: nextId.onetime++, name, amount});
+                document.getElementById('one-name').value = '';
+                document.getElementById('one-amount').value = '';
+                saveData();
+                renderOnetime();
+                renderDashboard();
+            }
+        });
+
+        document.getElementById('reset-onetime').addEventListener('click', () => {
+            if (confirm('Reset all one-time expenses? This cannot be undone.')) {
+                data.onetime = [];
+                // Reset extra debt payments too (min payments stay recurring)
+                data.debts.forEach(d => d.paidThisMonth = {min: 0, extra: 0});
+                saveData();
+                renderOnetime();
+                renderDebts();
+                renderDashboard();
+            }
+        });
+
+        // Debts
+        document.getElementById('add-debt').addEventListener('click', () => {
+            const name = document.getElementById('debt-name').value.trim();
+            const total = parseFloat(document.getElementById('debt-total').value);
+            const min = parseFloat(document.getElementById('debt-min').value);
+            if (name && !isNaN(total) && total > 0 && !isNaN(min) && min >= 0) {
+                data.debts.push({
+                    id: nextId.debt++,
+                    name,
+                    total,
+                    minPayment: min,
+                    paidThisMonth: {min: 0, extra: 0},
+                    remaining: total
+                });
+                document.getElementById('debt-name').value = '';
+                document.getElementById('debt-total').value = '';
+                document.getElementById('debt-min').value = '';
+                saveData();
+                renderDebts();
+                renderDashboard();
+            }
+        });
+
+        // Rendering functions
+        function renderAll() {
+            document.getElementById('current-income').textContent = `$${data.income.toFixed(2)}`;
+            renderDashboard();
+            renderRecurring();
+            renderOnetime();
+            renderDebts();
+        }
+
+        function renderDashboard() {
+            const totalRecurring = data.recurring.reduce((sum, e) => sum + e.amount, 0);
+            const totalOnetime = data.onetime.reduce((sum, e) => sum + e.amount, 0);
+            const totalMinDebt = data.debts.reduce((sum, d) => sum + d.minPayment, 0);
+            const totalExtraDebt = data.debts.reduce((sum, d) => sum + (d.paidThisMonth?.extra || 0), 0);
+            const totalDebtPayments = totalMinDebt + totalExtraDebt;
+            const totalSpent = totalRecurring + totalOnetime + totalDebtPayments;
+            const remaining = data.income - totalSpent;
+            const saved = remaining > 0 ? remaining : 0;
+
+            const summaryHTML = `
+                <div class="summary-card">
+                    <div>Income</div>
+                    <div class="summary-value positive">$${data.income.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <div>Recurring Expenses</div>
+                    <div class="summary-value negative">$${totalRecurring.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <div>One-Time Expenses</div>
+                    <div class="summary-value negative">$${totalOnetime.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <div>Debt Payments</div>
+                    <div class="summary-value negative">$${totalDebtPayments.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <div>Money Left</div>
+                    <div class="summary-value ${remaining >= 0 ? 'positive' : 'negative'}">$${remaining.toFixed(2)}</div>
+                </div>
+                <div class="summary-card">
+                    <div>Saved This Month</div>
+                    <div class="summary-value positive">$${saved.toFixed(2)}</div>
+                </div>
+            `;
+            document.getElementById('summary-grid').innerHTML = summaryHTML;
+
+            // Spending progress (spent vs income)
+            const spentPercent = data.income > 0 ? (totalSpent / data.income) * 100 : 0;
+            document.getElementById('spending-progress').style.width = `${Math.min(spentPercent, 100)}%`;
+            document.getElementById('spending-text').textContent = `$${totalSpent.toFixed(2)} spent of $${data.income.toFixed(2)} (${spentPercent.toFixed(1)}%)`;
+
+            // Breakdown
+            let breakdown = '<div class="list-item"><span><strong>Category</strong></span><span><strong>Amount</strong></span></div>';
+            if (totalRecurring > 0) {
+                breakdown += `<div class="list-item"><span>Recurring Expenses</span><span class="amount negative">-$${totalRecurring.toFixed(2)}</span></div>`;
+                data.recurring.forEach(e => {
+                    breakdown += `<div class="list-item"><span>&nbsp;&nbsp;• ${e.name}</span><span class="amount">$${e.amount.toFixed(2)}</span></div>`;
+                });
+            }
+            if (totalOnetime > 0) {
+                breakdown += `<div class="list-item"><span>One-Time Expenses</span><span class="amount negative">-$${totalOnetime.toFixed(2)}</span></div>`;
+                data.onetime.forEach(e => {
+                    breakdown += `<div class="list-item"><span>&nbsp;&nbsp;• ${e.name}</span><span class="amount">$${e.amount.toFixed(2)}</span></div>`;
+                });
+            }
+            if (totalDebtPayments > 0) {
+                breakdown += `<div class="list-item"><span>Debt Payments</span><span class="amount negative">-$${totalDebtPayments.toFixed(2)}</span></div>`;
+            }
+            document.getElementById('breakdown-list').innerHTML = breakdown || '<p>No expenses yet.</p>';
+        }
+
+        function renderRecurring() {
+            let html = '';
+            data.recurring.forEach(e => {
+                html += `<div class="list-item">
+                    <span>${e.name}: $${e.amount.toFixed(2)}</span>
+                    <button class="danger" onclick="deleteRecurring(${e.id})">Delete</button>
+                </div>`;
+            });
+            document.getElementById('recurring-list').innerHTML = html || '<p>No recurring expenses added.</p>';
+        }
+
+        window.deleteRecurring = function(id) {
+            data.recurring = data.recurring.filter(e => e.id !== id);
+            saveData();
+            renderRecurring();
+            renderDashboard();
+        };
+
+        function renderOnetime() {
+            let html = '';
+            data.onetime.forEach(e => {
+                html += `<div class="list-item">
+                    <span>${e.name}: $${e.amount.toFixed(2)}</span>
+                    <button class="danger" onclick="deleteOnetime(${e.id})">Delete</button>
+                </div>`;
+            });
+            document.getElementById('onetime-list').innerHTML = html || '<p>No one-time expenses this month.</p>';
+        }
+
+        window.deleteOnetime = function(id) {
+            data.onetime = data.onetime.filter(e => e.id !== id);
+            saveData();
+            renderOnetime();
+            renderDashboard();
+        };
+
+        function renderDebts() {
+            let html = '';
+            data.debts.forEach(d => {
+                const paidMin = d.paidThisMonth?.min || 0;
+                const paidExtra = d.paidThisMonth?.extra || 0;
+                const totalPaidThisMonth = paidMin + paidExtra;
+                const remaining = d.remaining || d.total;
+
+                html += `<div class="card" style="margin-bottom:1rem;">
+                    <div class="list-item"><strong>${d.name}</strong><span>Remaining: $${remaining.toFixed(2)}</span></div>
+                    <p>Minimum payment: $${d.minPayment.toFixed(2)}</p>
+                    <div class="form-group">
+                        <label>Record Minimum Payment Made</label>
+                        <input type="number" step="0.01" placeholder="Amount paid toward minimum" id="minpay-${d.id}">
+                        <button onclick="recordMinPayment(${d.id})">Record</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Record Extra Payment (toward principal)</label>
+                        <input type="number" step="0.01" placeholder="Extra amount" id="extrapay-${d.id}">
+                        <button onclick="recordExtraPayment(${d.id})">Record Extra</button>
+                    </div>
+                    <p>Paid this month: $${totalPaidThisMonth.toFixed(2)} ${paidExtra > 0 ? `(incl. $${paidExtra.toFixed(2)} extra)` : ''}</p>
+                    <button class="danger" onclick="deleteDebt(${d.id})">Delete Debt</button>
+                </div>`;
+            });
+            document.getElementById('debts-list').innerHTML = html || '<p>No debts added.</p>';
+        }
+
+        window.recordMinPayment = function(id) {
+            const input = document.getElementById(`minpay-${id}`);
+            const amount = parseFloat(input.value);
+            if (!isNaN(amount) && amount > 0) {
+                const debt = data.debts.find(d => d.id === id);
+                debt.paidThisMonth = debt.paidThisMonth || {min:0, extra:0};
+                debt.paidThisMonth.min += amount;
+                input.value = '';
+                saveData();
+                renderDebts();
+                renderDashboard();
+            }
+        };
+
+        window.recordExtraPayment = function(id) {
+            const input = document.getElementById(`extrapay-${id}`);
+            const amount = parseFloat(input.value);
+            if (!isNaN(amount) && amount > 0) {
+                const debt = data.debts.find(d => d.id === id);
+                debt.paidThisMonth = debt.paidThisMonth || {min:0, extra:0};
+                debt.paidThisMonth.extra += amount;
+                debt.remaining = (debt.remaining || debt.total) - amount;
+                input.value = '';
+                saveData();
+                renderDebts();
+                renderDashboard();
+            }
+        };
+
+        window.deleteDebt = function(id) {
+            if (confirm('Delete this debt permanently?')) {
+                data.debts = data.debts.filter(d => d.id !== id);
+                saveData();
+                renderDebts();
+                renderDashboard();
+            }
+        };
+
+        // Init
+        loadData();
+    </script>
+</body>
+</html>
