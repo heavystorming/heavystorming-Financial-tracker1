@@ -1,0 +1,1 @@
+ALTER TABLE incomes ADD COLUMN currency TEXT DEFAULT 'USD';

@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl, type InsertDebt, type InsertDebtPayment } from "@shared/routes";
+import { z } from "zod";
+import { insertDebtSchema, insertDebtPaymentSchema } from "@shared/schema";
 
 export function useDebts() {
   return useQuery({
@@ -15,7 +17,7 @@ export function useDebts() {
 export function useAddDebt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertDebt) => {
+    mutationFn: async (data: z.input<typeof insertDebtSchema>) => {
       const res = await fetch(api.debts.create.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,7 +49,7 @@ export function useDeleteDebt() {
 export function usePayDebt() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ debtId, ...payment }: { debtId: number } & Omit<InsertDebtPayment, 'debtId'>) => {
+    mutationFn: async ({ debtId, ...payment }: { debtId: number } & Omit<z.input<typeof insertDebtPaymentSchema>, 'debtId'>) => {
       const url = buildUrl(api.debts.pay.path, { id: debtId });
       const res = await fetch(url, {
         method: "POST",

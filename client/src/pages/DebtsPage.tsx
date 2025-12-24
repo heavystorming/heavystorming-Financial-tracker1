@@ -20,7 +20,7 @@ export default function DebtsPage() {
   const [open, setOpen] = useState(false);
   const [payOpen, setPayOpen] = useState<{open: boolean, debtId: number | null}>({open: false, debtId: null});
 
-  const form = useForm<z.infer<typeof insertDebtSchema>>({
+  const form = useForm<z.input<typeof insertDebtSchema>>({
     resolver: zodResolver(insertDebtSchema),
     defaultValues: {
       name: "",
@@ -31,15 +31,16 @@ export default function DebtsPage() {
     },
   });
 
-  const payForm = useForm<z.infer<typeof insertDebtPaymentSchema>>({
-    resolver: zodResolver(insertDebtPaymentSchema.omit({ debtId: true })),
+  const payDebtSchema = insertDebtPaymentSchema.omit({ debtId: true });
+  const payForm = useForm<z.input<typeof payDebtSchema>>({
+    resolver: zodResolver(payDebtSchema),
     defaultValues: {
       amount: "",
       isExtra: false,
     },
   });
 
-  const onSubmit = (data: z.infer<typeof insertDebtSchema>) => {
+  const onSubmit = (data: z.input<typeof insertDebtSchema>) => {
     addDebt.mutate(data, {
       onSuccess: () => {
         setOpen(false);
@@ -48,7 +49,7 @@ export default function DebtsPage() {
     });
   };
 
-  const onPaySubmit = (data: any) => {
+  const onPaySubmit = (data: z.input<typeof payDebtSchema>) => {
     if (payOpen.debtId) {
       payDebt.mutate({ debtId: payOpen.debtId, ...data }, {
         onSuccess: () => {
@@ -59,7 +60,7 @@ export default function DebtsPage() {
     }
   };
 
-  const totalDebt = debts?.reduce((acc, curr) => acc + parseFloat(curr.totalAmount), 0) || 0;
+  const totalDebt = debts?.reduce((acc, curr) => acc + curr.totalAmount, 0) || 0;
 
   return (
     <Layout>
@@ -143,7 +144,7 @@ export default function DebtsPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" isLoading={addDebt.isPending}>
+                    <Button type="submit" className="w-full">
                       Add Debt
                     </Button>
                   </form>
@@ -174,7 +175,7 @@ export default function DebtsPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" isLoading={payDebt.isPending}>
+                    <Button type="submit" className="w-full">
                       Record Payment
                     </Button>
                 </form>
@@ -197,7 +198,7 @@ export default function DebtsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {debts?.map((item) => {
-              const amount = parseFloat(item.totalAmount);
+              const amount = item.totalAmount;
               return (
                 <div key={item.id} className="bg-white p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-between h-full">
                   <div>
@@ -230,7 +231,7 @@ export default function DebtsPage() {
                         <span>Payoff Goal</span>
                       </div>
                       {/* Inverse progress bar conceptually: full bar is debt, empty is paid. Here we just show a static visual or we'd need original amount to show progress. Since we only have current amount, we'll just show a decorative bar for now or assumes 100% is current + paid (if we tracked it). Let's just do a visual element. */}
-                      <Progress value={100} className="h-2 bg-red-100" indicatorClassName="bg-red-500" />
+                      <Progress value={100} className="h-2 bg-red-100" />
                     </div>
                   </div>
 

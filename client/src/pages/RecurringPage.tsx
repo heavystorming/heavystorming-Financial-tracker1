@@ -17,7 +17,7 @@ export default function RecurringPage() {
   const deleteExpense = useDeleteRecurringExpense();
   const [open, setOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof insertRecurringSchema>>({
+  const form = useForm<z.input<typeof insertRecurringSchema>>({
     resolver: zodResolver(insertRecurringSchema),
     defaultValues: {
       name: "",
@@ -26,7 +26,7 @@ export default function RecurringPage() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof insertRecurringSchema>) => {
+  const onSubmit = (data: z.input<typeof insertRecurringSchema>) => {
     addExpense.mutate(data, {
       onSuccess: () => {
         setOpen(false);
@@ -35,7 +35,7 @@ export default function RecurringPage() {
     });
   };
 
-  const totalRecurring = recurring?.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) || 0;
+  const totalRecurring = recurring?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
   return (
     <Layout>
@@ -91,7 +91,7 @@ export default function RecurringPage() {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" isLoading={addExpense.isPending}>
+                    <Button type="submit" className="w-full">
                       Add Expense
                     </Button>
                   </form>
@@ -133,7 +133,7 @@ export default function RecurringPage() {
                 <div>
                   <h3 className="font-semibold text-lg text-gray-900">{item.name}</h3>
                   <p className="text-2xl font-bold font-display text-gray-900 mt-1">
-                    ${parseFloat(item.amount).toLocaleString()}
+                    ${item.amount.toLocaleString()}
                     <span className="text-xs font-sans font-normal text-muted-foreground ml-1">/mo</span>
                   </p>
                 </div>

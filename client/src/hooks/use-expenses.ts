@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl, type InsertExpense } from "@shared/routes";
+import { z } from "zod";
+import { insertExpenseSchema } from "@shared/schema";
 
 export function useExpenses() {
   return useQuery({
@@ -15,11 +17,13 @@ export function useExpenses() {
 export function useAddExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertExpense) => {
+    mutationFn: async (data: z.input<typeof insertExpenseSchema>) => {
+      // Ensure amount is sent as a string
+      const payload = { ...data, amount: String(data.amount) };
       const res = await fetch(api.expenses.create.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed to create expense");
       return api.expenses.create.responses[201].parse(await res.json());

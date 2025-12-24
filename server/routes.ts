@@ -12,7 +12,11 @@ export async function registerRoutes(
   // Income
   app.get(api.income.get.path, async (req, res) => {
     const income = await storage.getIncome();
-    res.json(income || { amount: "0" });
+    if (income) {
+      res.json(income);
+    } else {
+      res.status(404).json({ message: "No income set" });
+    }
   });
 
   app.post(api.income.update.path, async (req, res) => {
@@ -121,7 +125,7 @@ export async function registerRoutes(
       // Update total amount
       const currentTotal = Number(debt.totalAmount);
       const paymentAmount = Number(input.amount);
-      const newTotal = Math.max(0, currentTotal - paymentAmount).toFixed(2);
+      const newTotal = Math.max(0, currentTotal - paymentAmount);
       
       const updatedDebt = await storage.updateDebtBalance(debtId, newTotal);
       res.json(updatedDebt);
@@ -136,14 +140,14 @@ export async function registerRoutes(
   // Seed data
   const existingIncome = await storage.getIncome();
   if (!existingIncome) {
-    await storage.setIncome({ amount: "5000.00" });
-    await storage.createRecurringExpense({ name: "Rent", amount: "1200.00" });
-    await storage.createRecurringExpense({ name: "Utilities", amount: "150.00" });
-    await storage.createRecurringExpense({ name: "Netflix", amount: "15.99" });
-    await storage.createExpense({ name: "Groceries", amount: "85.50", category: "Food" });
-    await storage.createExpense({ name: "Gas", amount: "45.00", category: "Transport" });
-    await storage.createExpense({ name: "Movie Night", amount: "30.00", category: "Entertainment" });
-    await storage.createDebt({ name: "Credit Card", totalAmount: "2500.00", minPayment: "100.00", interestRate: "19.99" });
+    await storage.setIncome({ amount: 5000.00 });
+    await storage.createRecurringExpense({ name: "Rent", amount: 1200.00 });
+    await storage.createRecurringExpense({ name: "Utilities", amount: 150.00 });
+    await storage.createRecurringExpense({ name: "Netflix", amount: 15.99 });
+    await storage.createExpense({ name: "Groceries", amount: 85.50, category: "Food" });
+    await storage.createExpense({ name: "Gas", amount: 45.00, category: "Transport" });
+    await storage.createExpense({ name: "Movie Night", amount: 30.00, category: "Entertainment" });
+    await storage.createDebt({ name: "Credit Card", totalAmount: 2500.00, minPayment: 100.00, interestRate: 19.99 });
   }
 
   return httpServer;

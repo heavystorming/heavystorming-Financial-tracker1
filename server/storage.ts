@@ -30,7 +30,7 @@ export interface IStorage {
   createDebt(debt: InsertDebt): Promise<Debt>;
   deleteDebt(id: number): Promise<void>;
   recordDebtPayment(payment: InsertDebtPayment): Promise<DebtPayment>;
-  updateDebtBalance(id: number, newAmount: string): Promise<Debt>;
+  updateDebtBalance(id: number, newAmount: number): Promise<Debt>;
   getDebt(id: number): Promise<Debt | undefined>;
 }
 
@@ -42,8 +42,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setIncome(income: InsertIncome): Promise<Income> {
-    const [newIncome] = await db.insert(incomes).values(income).returning();
-    return newIncome;
+    // Check if income already exists
+    const existing = await this.getIncome();
+    if (existing) {
+      // Update existing income
+      const [updatedIncome] = await db.update(incomes)
+        .set({ ...income, updatedAt: new Date().toISOString() })
+        .where(eq(incomes.id, existing.id))
+        .returning();
+      return updatedIncome;
+    } else {
+      // Insert new income
+      const [newIncome] = await db.insert(incomes).values(income).returning();
+      return newIncome;
+    }
   }
 
   // Recurring
@@ -102,7 +114,7 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async updateDebtBalance(id: number, newAmount: string): Promise<Debt> {
+  async updateDebtBalance(id: number, newAmount: number): Promise<Debt> {
     const [updatedDebt] = await db.update(debts)
       .set({ totalAmount: newAmount })
       .where(eq(debts.id, id))

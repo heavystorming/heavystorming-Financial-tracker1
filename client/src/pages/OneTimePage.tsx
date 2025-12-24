@@ -23,7 +23,7 @@ export default function OneTimePage() {
   const clearExpenses = useClearExpenses();
   const [open, setOpen] = useState(false);
 
-  const form = useForm<z.infer<typeof insertExpenseSchema>>({
+  const form = useForm<z.input<typeof insertExpenseSchema>>({
     resolver: zodResolver(insertExpenseSchema),
     defaultValues: {
       name: "",
@@ -32,7 +32,7 @@ export default function OneTimePage() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof insertExpenseSchema>) => {
+  const onSubmit = (data: z.input<typeof insertExpenseSchema>) => {
     addExpense.mutate(data, {
       onSuccess: () => {
         setOpen(false);
@@ -41,7 +41,7 @@ export default function OneTimePage() {
     });
   };
 
-  const totalExpenses = expenses?.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) || 0;
+  const totalExpenses = expenses?.reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
   return (
     <Layout>
@@ -126,7 +126,7 @@ export default function OneTimePage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                               <FormControl>
                                 <SelectTrigger className="rounded-xl h-11 border-2 border-border focus:ring-primary/20">
                                   <SelectValue placeholder="Select" />
@@ -144,7 +144,7 @@ export default function OneTimePage() {
                         )}
                       />
                     </div>
-                    <Button type="submit" className="w-full" isLoading={addExpense.isPending}>
+                    <Button type="submit" className="w-full">
                       Add Expense
                     </Button>
                   </form>
@@ -209,7 +209,7 @@ export default function OneTimePage() {
                      </div>
                    </div>
                    <div className="flex items-center gap-4">
-                     <span className="font-bold text-gray-900">${parseFloat(item.amount).toLocaleString()}</span>
+                     <span className="font-bold text-gray-900">${item.amount.toLocaleString()}</span>
                      <button 
                        onClick={() => deleteExpense.mutate(item.id)}
                        className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"

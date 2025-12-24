@@ -9,7 +9,12 @@ import {
   recurringExpenses, 
   expenses, 
   debts, 
-  debtPayments 
+  debtPayments,
+  type InsertIncome,
+  type InsertRecurring,
+  type InsertExpense,
+  type InsertDebt,
+  type InsertDebtPayment
 } from './schema';
 
 export const errorSchemas = {
@@ -158,3 +163,6 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   }
   return url;
 }
+
+// Export types
+export type { InsertIncome, InsertRecurring, InsertExpense, InsertDebt, InsertDebtPayment };

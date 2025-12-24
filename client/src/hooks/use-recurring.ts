@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl, type InsertRecurring } from "@shared/routes";
+import { z } from "zod";
+import { insertRecurringSchema } from "@shared/schema";
 
 export function useRecurringExpenses() {
   return useQuery({
@@ -15,11 +17,13 @@ export function useRecurringExpenses() {
 export function useAddRecurringExpense() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: InsertRecurring) => {
+    mutationFn: async (data: z.input<typeof insertRecurringSchema>) => {
+      // Ensure amount is sent as a string
+      const payload = { ...data, amount: String(data.amount) };
       const res = await fetch(api.recurring.create.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed to create recurring expense");
       return api.recurring.create.responses[201].parse(await res.json());

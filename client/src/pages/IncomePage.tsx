@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertIncomeSchema } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
 import { useEffect } from "react";
 import { Wallet } from "lucide-react";
@@ -18,7 +19,7 @@ export default function IncomePage() {
   // Zod schema from shared might expect string for numeric columns if inferred directly from drizzle-zod
   // We'll trust the generated schema.
   
-  const form = useForm<z.infer<typeof insertIncomeSchema>>({
+  const form = useForm<z.input<typeof insertIncomeSchema>>({
     resolver: zodResolver(insertIncomeSchema),
     defaultValues: {
       amount: "",
@@ -27,11 +28,11 @@ export default function IncomePage() {
 
   useEffect(() => {
     if (income) {
-      form.reset({ amount: income.amount });
+      form.reset({ amount: income.amount.toString() });
     }
   }, [income, form]);
 
-  const onSubmit = (data: z.infer<typeof insertIncomeSchema>) => {
+  const onSubmit = (data: z.input<typeof insertIncomeSchema>) => {
     updateIncome.mutate(data);
   };
 
@@ -75,7 +76,6 @@ export default function IncomePage() {
                 type="submit" 
                 size="lg" 
                 className="w-full"
-                isLoading={updateIncome.isPending}
               >
                 {income ? "Update Income" : "Set Income"}
               </Button>
@@ -86,7 +86,7 @@ export default function IncomePage() {
             <div className="mt-8 p-6 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
               <p className="text-sm text-muted-foreground uppercase tracking-wider font-semibold mb-1">Current Monthly Income</p>
               <div className="text-4xl font-display font-bold text-slate-800">
-                ${parseFloat(income.amount).toLocaleString()}
+                ${income.amount.toLocaleString()}
               </div>
             </div>
           )}
