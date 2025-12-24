@@ -5,6 +5,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { db } from "./db";
+import path from "path";
 
 const app = express();
 const httpServer = createServer(app);
@@ -59,7 +60,7 @@ app.use((req, res, next) => {
 
 (async () => {
   log("Running database migrations...");
-  migrate(db, { migrationsFolder: "./migrations" });
+  migrate(db, { migrationsFolder: path.resolve(__dirname, "../migrations") });
   log("Migrations completed");
 
   await registerRoutes(httpServer, app);
