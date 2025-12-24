@@ -60,8 +60,13 @@ app.use((req, res, next) => {
 
 (async () => {
   log("Running database migrations...");
-  migrate(db, { migrationsFolder: path.resolve(__dirname, "../migrations") });
-  log("Migrations completed");
+  try {
+    migrate(db, { migrationsFolder: path.resolve(__dirname, "../migrations") });
+    log("Migrations completed");
+  } catch (error) {
+    log(`Migration error: ${error}`);
+    throw error;
+  }
 
   await registerRoutes(httpServer, app);
 
