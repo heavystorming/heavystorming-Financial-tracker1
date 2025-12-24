@@ -3,7 +3,7 @@ import { LayoutDashboard, Wallet, Repeat, Receipt, CreditCard, Target } from "lu
 import { clsx } from "clsx";
 import { motion } from "framer-motion";
 import { ThemeToggle } from "./theme-toggle";
-import { Button } from "./button";
+import { Button } from "./Button";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
