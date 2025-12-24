@@ -1,26 +1,12 @@
 {
   "version": "7",
-  "dialect": "sqlite",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "6",
-      "when": 1766544751176,
-      "tag": "0000_flawless_ricochet",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1766544780019,
-      "tag": "0001_steady_invaders",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1766549752996,
-      "tag": "0002_closed_ultimo",
+      "version": "7",
+      "when": 1735043772247,
+      "tag": "0000_initial",
       "breakpoints": true
     }
   ]
