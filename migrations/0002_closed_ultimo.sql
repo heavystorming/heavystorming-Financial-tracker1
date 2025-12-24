@@ -29,6 +29,6 @@ CREATE TABLE `__new_incomes` (
 	`updated_at` text DEFAULT '2025-12-24T04:15:52.989Z'
 );
 --> statement-breakpoint
-INSERT INTO `__new_incomes`("id", "amount", "currency", "updated_at") SELECT "id", "amount", "currency", "updated_at" FROM `incomes`;--> statement-breakpoint
+INSERT INTO `__new_incomes`("id", "amount", "updated_at") SELECT "id", "amount", "updated_at" FROM `incomes`;--> statement-breakpoint
 DROP TABLE `incomes`;--> statement-breakpoint
 ALTER TABLE `__new_incomes` RENAME TO `incomes`;
